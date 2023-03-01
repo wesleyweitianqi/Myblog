@@ -3,8 +3,17 @@ import { useState } from "react";
 import CountDown from "../CountDown";
 import React, { ChangeEvent } from "react";
 import { message } from "antd";
-import request from "@/service/fetch";
+// import request from "@/service/fetch";
+import {
+  getAuth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+} from "firebase/auth";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
+import firebaseApp from "@/service/firebase";
+
+const auth = getAuth(firebaseApp);
 interface IProps {
   isShow: boolean;
   setIsShown: React.Dispatch<React.SetStateAction<boolean>>;
@@ -13,8 +22,9 @@ interface IProps {
 }
 
 const Login = (props: IProps) => {
-  const { isShow, handleLogin, setIsShown } = props;
+  const { isShow, setIsShown } = props;
   const [isShowVerifyCode, setIsShowVerifyCode] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const [form, setForm] = useState({
     phone: "",
     verify: "",
@@ -30,21 +40,48 @@ const Login = (props: IProps) => {
   };
 
   const handleGetVerifyCode = () => {
-    // setIsShowVerifyCode(true);
     if (!form?.phone) {
       message.warning("Please enter phone number");
+      return;
     }
-    request
-      .post("/api/user/sendVerifyCode", {
-        to: form?.phone,
-        templateId: 1,
+    // if (form?.phone.length !== 11) {
+    //   message.warning("Invalid phone number");
+    //   return;
+    // }
+
+    const appVerifier = new RecaptchaVerifier(
+      "recaptcha-container",
+      {
+        size: "invisible",
+        callback: () => {
+          // Handle the reCAPTCHA callback
+        },
+      },
+      auth
+    );
+
+    signInWithPhoneNumber(auth, form?.phone, appVerifier)
+      .then((res) => {
+        setConfirmationResult(res);
+        setIsShowVerifyCode(true);
       })
-      .then((res: any) => {
-        if (res?.code === 0) {
-          setIsShowVerifyCode(true);
-        } else {
-          message.error(res?.message || "unknow");
-        }
+      .catch((err) => {
+        console.log(err.message);
+        // message.error(err);
+      });
+  };
+
+  const handleVerifyCode = () => {
+    confirmationResult
+      ?.confirm(form?.verify)
+      .then((result) => {
+        console.log(result);
+        message.success("Login successful");
+        setIsShown(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        message.error("Invalid verification code");
       });
   };
 
@@ -79,13 +116,13 @@ const Login = (props: IProps) => {
           />
           <span className={styles.verifyCode} onClick={handleGetVerifyCode}>
             {isShowVerifyCode ? (
-              <CountDown time={10} onEnd={onEnd} />
+              <CountDown time={60} onEnd={onEnd} />
             ) : (
               "Auth-code"
             )}
           </span>
         </div>
-        <div className={styles.loginBtn} onClick={handleLogin}>
+        <div className={styles.loginBtn} onClick={handleVerifyCode}>
           Login
         </div>
         <div className={styles.otherLogin} onClick={handleOAuthGithub}>
@@ -101,6 +138,7 @@ const Login = (props: IProps) => {
             隐私政策
           </a>
         </div>
+        <div id="recaptcha-container"></div>
       </div>
     </div>
   ) : null;
