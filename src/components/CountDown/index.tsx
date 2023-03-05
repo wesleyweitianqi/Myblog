@@ -9,7 +9,6 @@ interface IProps {
 const CountDown = (props: IProps) => {
   const { time, onEnd } = props;
   let [count, setCount] = useState(time || 60);
-  console.log(count);
   useEffect(() => {
     const id = setInterval(() => {
       setCount((count) => {

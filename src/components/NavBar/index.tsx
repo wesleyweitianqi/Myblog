@@ -3,7 +3,7 @@ import { navs } from "./config";
 import Link from "next/link";
 import styles from "./index.module.scss";
 import { useRouter } from "next/router";
-import { Button, Dropdown, Avatar } from "antd";
+import { Button, Dropdown, Avatar, message } from "antd";
 import { LoginOutlined, HomeOutlined } from "@ant-design/icons";
 import { useContext, useState } from "react";
 import Login from "@/components/Login";
@@ -14,13 +14,15 @@ import { getAuth, signOut } from "firebase/auth";
 const NavBar: NextPage = () => {
   const { currentUser, setCurrentUser } = useContext(userContext);
   const [isShow, setIsShown] = useState(false);
-  const router = useRouter();
+
   const { pathname, push } = useRouter();
   const auth = getAuth(firebaseApp);
 
   const handleGotoEditorPage = () => {
     if (currentUser) {
       push("/editor/new");
+    } else {
+      message.warning("Please login ");
     }
   };
 
