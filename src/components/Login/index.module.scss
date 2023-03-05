@@ -89,7 +89,20 @@
   #recaptcha-container {
     background-color: #007fff;
     position: relative;
-    top: 50%;
-    left: 50%;
+    margin: 0 auto;
+    width: 304px;
+  }
+
+  .grecaptcha-badge {
+    width: 256px;
+    height: 60px;
+    display: block;
+    transition: right 0.3s ease 0s;
+    position: fixed;
+    bottom: -13px;
+    right: 9%;
+    box-shadow: grey 0px 0px 5px;
+    border-radius: 2px;
+    overflow: hidden;
   }
 }

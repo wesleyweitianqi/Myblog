@@ -3,24 +3,65 @@ import { navs } from "./config";
 import Link from "next/link";
 import styles from "./index.module.scss";
 import { useRouter } from "next/router";
-import { Button } from "antd";
-import { useState } from "react";
+import { Button, Dropdown, Avatar } from "antd";
+import { LoginOutlined, HomeOutlined } from "@ant-design/icons";
+import { useContext, useState } from "react";
 import Login from "@/components/Login";
+import { userContext } from "../Layout";
+import firebaseApp from "@/service/firebase";
+import { getAuth, signOut } from "firebase/auth";
 
 const NavBar: NextPage = () => {
-  let userId;
+  const { currentUser, setCurrentUser } = useContext(userContext);
   const [isShow, setIsShown] = useState(false);
   const router = useRouter();
-  const { pathname } = router;
-  const handleGotoEditorPage = () => {};
+  const { pathname, push } = useRouter();
+  const auth = getAuth(firebaseApp);
+
+  const handleGotoEditorPage = () => {
+    if (currentUser) {
+      push("/editor/new");
+    }
+  };
 
   const handleLogin = () => {
     setIsShown(true);
   };
 
+  const handleLogout = () => {
+    signOut(auth);
+    localStorage.removeItem("accessToken");
+    setCurrentUser({});
+  };
+
   const handleClose = () => {
     setIsShown(false);
   };
+
+  const handleGotoPersonalPage = () => {
+    push(`/user/${currentUser.uid}`);
+  };
+
+  const items: MenuProps["items"] = [
+    {
+      key: "1",
+      label: (
+        <div onClick={handleGotoPersonalPage}>
+          <HomeOutlined />
+          &nbsp; Profile
+        </div>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <div onClick={handleLogout}>
+          <LoginOutlined />
+          &nbsp; Logout
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className={styles.navbar}>
@@ -37,11 +78,13 @@ const NavBar: NextPage = () => {
       <section className={styles.operationArea}>
         <Button onClick={handleGotoEditorPage}>Writing</Button>
 
-        {userId ? (
+        {currentUser ? (
           <>
-            {/* <Dropdown overlay={renderDropDownMenu()} placement="bottomLeft">
-              <Avatar src={avatar} size={32} />
-            </Dropdown> */}
+            {
+              <Dropdown menu={{ items }} placement="bottomLeft">
+                <Avatar src={currentUser.photoURL} size={32} />
+              </Dropdown>
+            }
           </>
         ) : (
           <Button type="primary" onClick={handleLogin}>

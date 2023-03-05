@@ -1,19 +1,19 @@
 import styles from "@/components/Login/index.module.scss";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import CountDown from "../CountDown";
 import React, { ChangeEvent } from "react";
 import { message } from "antd";
-// import request from "@/service/fetch";
 import {
   getAuth,
   RecaptchaVerifier,
   signInWithPhoneNumber,
 } from "firebase/auth";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 import firebaseApp from "@/service/firebase";
+import { userContext } from "../Layout";
 
 const auth = getAuth(firebaseApp);
+
 interface IProps {
   isShow: boolean;
   setIsShown: React.Dispatch<React.SetStateAction<boolean>>;
@@ -22,8 +22,10 @@ interface IProps {
 }
 
 const Login = (props: IProps) => {
+  const { currentUser, setCurrentUser } = useContext(userContext);
+
   const { isShow, setIsShown } = props;
-  const [isShowVerifyCode, setIsShowVerifyCode] = useState(false);
+  const [isCounting, setIsCounting] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [form, setForm] = useState({
     phone: "",
@@ -39,16 +41,11 @@ const Login = (props: IProps) => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleGetVerifyCode = () => {
+  const getAuthCode = () => {
     if (!form?.phone) {
       message.warning("Please enter phone number");
       return;
     }
-    // if (form?.phone.length !== 11) {
-    //   message.warning("Invalid phone number");
-    //   return;
-    // }
-
     const appVerifier = new RecaptchaVerifier(
       "recaptcha-container",
       {
@@ -63,21 +60,21 @@ const Login = (props: IProps) => {
     signInWithPhoneNumber(auth, form?.phone, appVerifier)
       .then((res) => {
         setConfirmationResult(res);
-        setIsShowVerifyCode(true);
+        setIsCounting(true);
       })
       .catch((err) => {
-        console.log(err.message);
-        // message.error(err);
+        message.error(err);
       });
   };
 
-  const handleVerifyCode = () => {
+  const clickLogin = () => {
     confirmationResult
       ?.confirm(form?.verify)
       .then((result) => {
-        console.log(result);
         message.success("Login successful");
         setIsShown(false);
+        setCurrentUser(result?.user);
+        localStorage.setItem("accessToken", result?.user.accessToken);
       })
       .catch((error) => {
         console.error(error);
@@ -87,7 +84,7 @@ const Login = (props: IProps) => {
 
   const handleOAuthGithub = () => {};
   const onEnd = () => {
-    setIsShowVerifyCode(false);
+    setIsCounting(false);
   };
 
   return isShow ? (
@@ -114,19 +111,15 @@ const Login = (props: IProps) => {
             value={form.verify}
             onChange={handleFormChange}
           />
-          <span className={styles.verifyCode} onClick={handleGetVerifyCode}>
-            {isShowVerifyCode ? (
-              <CountDown time={60} onEnd={onEnd} />
-            ) : (
-              "Auth-code"
-            )}
+          <span className={styles.verifyCode} onClick={getAuthCode}>
+            {isCounting ? <CountDown time={60} onEnd={onEnd} /> : "Auth-code"}
           </span>
         </div>
-        <div className={styles.loginBtn} onClick={handleVerifyCode}>
+        <div className={styles.loginBtn} onClick={clickLogin}>
           Login
         </div>
         <div className={styles.otherLogin} onClick={handleOAuthGithub}>
-          Or Login By
+          Or Login By Github
         </div>
         <div className={styles.loginPrivacy}>
           注册登录即表示同意
