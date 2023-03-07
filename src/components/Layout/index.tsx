@@ -32,13 +32,17 @@ const Layout = ({ children }: Props) => {
 
   useEffect(() => {
     if (currentUser) {
+      console.log(
+        "🚀 ~ file: index.tsx:35 ~ useEffect ~ currentUser:",
+        currentUser
+      );
       if (!currentUser.photoURL) {
         setCurrentUser({ ...currentUser, photoURL: newAvatar });
         const user = auth.currentUser;
         updateProfile(user, { photoURL: newAvatar });
       }
     }
-  }, []);
+  });
   return (
     <userContext.Provider value={{ currentUser, setCurrentUser }}>
       <div>

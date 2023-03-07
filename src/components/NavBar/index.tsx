@@ -13,6 +13,7 @@ import { getAuth, signOut } from "firebase/auth";
 
 const NavBar: NextPage = () => {
   const { currentUser, setCurrentUser } = useContext(userContext);
+  console.log("🚀 ~ file: index.tsx:16 ~ currentUser:", currentUser);
   const [isShow, setIsShown] = useState(false);
 
   const { pathname, push } = useRouter();
