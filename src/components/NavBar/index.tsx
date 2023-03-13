@@ -10,10 +10,10 @@ import Login from "@/components/Login";
 import { userContext } from "../Layout";
 import firebaseApp from "@/service/firebase";
 import { getAuth, signOut } from "firebase/auth";
+import request from "@/service/fetch";
 
 const NavBar: NextPage = () => {
   const { currentUser, setCurrentUser } = useContext(userContext);
-  console.log("🚀 ~ file: index.tsx:16 ~ currentUser:", currentUser);
   const [isShow, setIsShown] = useState(false);
 
   const { pathname, push } = useRouter();
@@ -25,6 +25,13 @@ const NavBar: NextPage = () => {
     } else {
       message.warning("Please login ");
     }
+    request("/api/user/login", {
+      phone: "+1 6479369543",
+      verify: "123456",
+      identify_type: "phone",
+    }).then((res: any) => {
+      console.log(res);
+    });
   };
 
   const handleLogin = () => {

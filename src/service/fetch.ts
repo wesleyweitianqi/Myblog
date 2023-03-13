@@ -1,34 +1,45 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosError, Method } from "axios";
 
 const request = axios.create({
-  baseURL: '/',
-})
-
+  baseURL: "/",
+  timeout: 1000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 request.interceptors.request.use(
-  config=> {
-    const token = localStorage.getItem('accessToken')
-    if(token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  (config: AxiosRequestConfig) => {
+    if (
+      config.url?.indexOf("register") < 0 &&
+      config.url?.indexOf("login") < 0
+    ) {
+      const token = localStorage.getItem("accessToken");
+      config.headers = config.headers || {};
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
-  }, 
-  error => Promise.reject(error)
-)
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error);
+  }
+);
 
 request.interceptors.response.use(
-  res=>{
-    if(res?.status === 200) {
-      return res?.data
+  (res) => {
+    if (res?.status === 200) {
+      return res?.data;
     } else {
       return {
         code: 1,
         msg: "unknown",
         data: null,
-      }
+      };
     }
-  }, err => Promise.reject(err)
-)
-
+  },
+  (err) => Promise.reject(err)
+);
 
 export default request;

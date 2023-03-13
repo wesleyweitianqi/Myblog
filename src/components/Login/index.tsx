@@ -11,6 +11,7 @@ import {
 
 import firebaseApp from "@/service/firebase";
 import { userContext } from "../Layout";
+import request from "@/service/fetch";
 
 const auth = getAuth(firebaseApp);
 
@@ -23,13 +24,14 @@ interface IProps {
 
 const Login = (props: IProps) => {
   const { currentUser, setCurrentUser } = useContext(userContext);
+  console.log("🚀 ~ file: index.tsx:27 ~ Login ~ currentUser:", currentUser);
 
   const { isShow, setIsShown } = props;
   const [isCounting, setIsCounting] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [form, setForm] = useState({
     phone: "",
-    verify: "",
+    verifyCode: "",
   });
 
   const handleClose = () => {
@@ -41,7 +43,7 @@ const Login = (props: IProps) => {
     setForm({ ...form, [name]: value });
   };
 
-  const getAuthCode = () => {
+  const getAuthCode = async () => {
     if (!form?.phone) {
       message.warning("Please enter phone number");
       return;
@@ -57,24 +59,27 @@ const Login = (props: IProps) => {
       auth
     );
 
-    signInWithPhoneNumber(auth, form?.phone, appVerifier)
-      .then((res) => {
-        setConfirmationResult(res);
-        setIsCounting(true);
-      })
-      .catch((err) => {
-        message.error(err);
-      });
+    const confirmationResult = await signInWithPhoneNumber(
+      auth,
+      form?.phone,
+      appVerifier
+    );
+    setConfirmationResult(confirmationResult);
   };
 
   const clickLogin = () => {
     confirmationResult
-      ?.confirm(form?.verify)
+      ?.confirm(form?.verifyCode)
       .then((result) => {
         message.success("Login successful");
         setIsShown(false);
         setCurrentUser(result?.user);
         localStorage.setItem("accessToken", result?.user.accessToken);
+        request("/api/user/login", { ...form, user: result?.user }).then(
+          (res: any) => {
+            console.log(res);
+          }
+        );
       })
       .catch((error) => {
         console.error(error);
@@ -105,10 +110,10 @@ const Login = (props: IProps) => {
         />
         <div className={styles.verifyCodeArea}>
           <input
-            name="verify"
+            name="verifyCode"
             type="text"
             placeholder="Enter Auth Code"
-            value={form.verify}
+            value={form.verifyCode}
             onChange={handleFormChange}
           />
           <span className={styles.verifyCode} onClick={getAuthCode}>

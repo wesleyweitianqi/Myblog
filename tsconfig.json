@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    
-
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -19,8 +17,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "experimentalDecorators":true,
+    "emitDecoratorMetadata": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/service/firebase.js", "src/service/firebase.js"],
-  "exclude": ["node_modules"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/service/firebase.ts", "src/service/firebase.ts", "src/db/test.js", "src/db/test.js"],
+  "exclude": ["node_modules"]
 }
