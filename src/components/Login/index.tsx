@@ -11,7 +11,7 @@ import {
 
 import firebaseApp from "@/service/firebase";
 import { userContext } from "../Layout";
-import request from "@/service/fetch";
+import request, { LoginRequest } from "@/service/fetch";
 
 const auth = getAuth(firebaseApp);
 
@@ -75,11 +75,13 @@ const Login = (props: IProps) => {
         setIsShown(false);
         setCurrentUser(result?.user);
         localStorage.setItem("accessToken", result?.user.accessToken);
-        request("/api/user/login", { ...form, user: result?.user }).then(
-          (res: any) => {
-            console.log(res);
-          }
-        );
+
+        request("/api/user/login", {
+          method: "POST",
+          data: { ...form },
+        } as LoginRequest).then((res: any) => {
+          console.log(res);
+        });
       })
       .catch((error) => {
         console.error(error);

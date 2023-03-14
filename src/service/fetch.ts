@@ -1,4 +1,11 @@
-import axios, { AxiosRequestConfig, AxiosError, Method } from "axios";
+import axios, { AxiosRequestConfig, AxiosError } from "axios";
+
+export interface LoginRequest extends AxiosRequestConfig {
+  data: {
+    phone: string;
+    verifyCode: string;
+  };
+}
 
 const request = axios.create({
   baseURL: "/",
